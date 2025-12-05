@@ -1,7 +1,7 @@
 ---
 title: "Class05: Data Viz with GGPLOT"
 author: "Alexandra Garcia (PID: A16278166)"
-format: pdf
+format: gfm
 ---
 
 Today we are playing with plotting and graphics in R. 
