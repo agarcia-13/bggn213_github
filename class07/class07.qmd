@@ -1,0 +1,309 @@
+---
+title: "Class 7: Machine Learning 1"
+author: "Alexandra Garcia (A16278166)"
+format: pdf
+---
+
+Today we will begin our exploration of some "classical" machine learning approaches. We will start with clustering. 
+
+Lets first make up some data cluster where we know what the answer should be. 
+
+```{r}
+hist(rnorm(1000))
+```
+Make a vector with two groups of 30 random numbers centered around -3 and 3 on both the x and y axis
+
+> The function `rev()` reverses the vector order
+> The function `cbind()` binds the values by column
+
+```{r}
+x <- c(rnorm(30, mean=-3), rnorm(30, mean=3))
+y <- rev(x)
+
+x <- cbind(x,y)
+
+head(x)
+
+plot(x)
+```
+The main function in "base" R for k-means clustering is called `kmeans()`. 
+
+> The "clustering vector" in the result tells you which cluster each number belongs to. 
+
+```{r}
+k <- kmeans(x, centers = 2)
+
+k
+```
+> Q. How big are the clusters (their size)? 
+
+```{r}
+k$size
+```
+
+> Q. What clusters do my data points reside in? 
+
+```{r}
+k$cluster
+```
+
+> Q. Make a plot of our data colored by cluster assignment
+
+```{r}
+plot(x, col=k$cluster)
+points(k$centers, col="blue", pch=15)
+```
+> Q. Cluster with k-means into 4 clusters and plot your results
+
+```{r}
+k4 <- kmeans(x, centers = 4)
+
+plot(x, col=k4$cluster)
+points(k4$centers, col="blue", pch=15)
+```
+> Q. Run kmeans with centers equal to 1:6. Store the within cluster sum square. 
+
+```{r}
+ans <- NULL
+
+for (i in 1:6) {
+  ans <- c(ans, kmeans(x, centers = i)$tot.withinss)
+}
+ans
+```
+Make a plot
+```{r}
+plot(ans, type="b")
+```
+## Hierarchical Clustering
+
+The main function in "base" R for this is called `hclust()`
+
+```{r}
+d <- dist(x)
+
+hc <- hclust(d)
+
+hc
+```
+```{r}
+plot(hc)
+```
+
+```{r}
+plot(hc)
+abline(h=7, col="red")
+```
+To obrtain clusters from our `hclust()` result object, **hc** we "cut" the tree. Use the `cutree()` function
+```{r}
+grps <- cutree(hc, h=7)
+grps
+```
+```{r}
+plot(x, col=grps)
+```
+```{r}
+library(pheatmap)
+
+pheatmap(x)
+```
+## Principal Component Analysis (PCA)
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url)
+```
+
+> Q1. How many rows and columns are in your new data frame named x? What R functions could you use to answer this questions?
+
+```{r}
+dim(x)
+
+nrow(x)
+ncol(x)
+```
+There are 17 rows and 5 columns in x. 
+
+## Preview the first 6 rows
+
+```{r}
+head(x, 6)
+```
+```{r}
+x <- read.csv(url, row.names=1)
+head(x)
+```
+> Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?
+
+I prefer the second approach (using row.names) because the first approach causes x to be over written every time, meaning you lose data every time you run the code. 
+
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+```
+> Q3: Changing what optional argument in the above barplot() function results in the following plot?
+
+```{r}
+barplot(as.matrix(x), beside=F, col=rainbow(nrow(x)))
+```
+Change beside to F. 
+
+```{r}
+library(tidyr)
+
+# Convert data to long format for ggplot with `pivot_longer()`
+x_long <- x |> 
+          tibble::rownames_to_column("Food") |> 
+          pivot_longer(cols = -Food, 
+                       names_to = "Country", 
+                       values_to = "Consumption")
+
+dim(x_long)
+```
+```{r}
+library(ggplot2)
+
+ggplot(x_long) +
+  aes(x = Country, y = Consumption, fill = Food) +
+  geom_col(position = "dodge") +
+  theme_bw()
+```
+>Q4: Changing what optional argument in the above ggplot() code results in a stacked barplot figure?
+
+```{r}
+ggplot(x_long) +
+  aes(x = Country, y = Consumption, fill = Food) +
+  geom_col(position = "stack") +
+  theme_bw()
+```
+
+> Q5: We can use the pairs() function to generate all pairwise plots for our countries. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?
+
+```{r}
+pairs(x, col=rainbow(nrow(x)), pch=16)
+```
+The points are different foods. The diagonal lines means there are similar numbers of foods across the countries compared to each other. 
+
+```{r}
+library(pheatmap)
+
+pheatmap( as.matrix(x) )
+```
+> Q6. Based on the pairs and heatmap figures, which countries cluster together and what does this suggest about their food consumption patterns? Can you easily tell what the main differences between N. Ireland and the other countries of the UK in terms of this data-set?
+
+Based on the pairs, the countries that cluster together are England and Wales. This suggests that they are consuming the same things. It is still hard to tell the differences between N.Ireland and other countries. 
+
+## PCA to the rescue
+
+As we want to do PCA on the food data for the different countries we will want the foods in the columns. I want to transpose the data (change the structure) because I want the foods in the columns. 
+
+```{r}
+# Use the prcomp() PCA function 
+pca <- prcomp( t(x) )
+summary(pca)
+```
+Our result object is called `pca()` and it has a `$x` component that we will look at. 
+
+```{r}
+pca$x
+```
+> Q7. Complete the code below to generate a plot of PC1 vs PC2. The second line adds text labels over the data points.
+
+```{r}
+# Create a data frame for plotting
+df <- as.data.frame(pca$x)
+df$Country <- rownames(df)
+
+# Plot PC1 vs PC2 with ggplot
+ggplot(pca$x) +
+  aes(x = PC1, y = PC2, label = rownames(pca$x)) +
+  geom_point(size = 3) +
+  geom_text(vjust = -0.5) +
+  xlim(-270, 500) +
+  xlab("PC1") +
+  ylab("PC2") +
+  theme_bw()
+```
+> Q8. Customize your plot so that the colors of the country names match the colors in our UK and Ireland map and table at start of this document.
+
+```{r}
+
+cols <- c("orange", "red", "blue", "darkgreen")
+
+ggplot(pca$x) +
+  aes(x = PC1, y = PC2, label = rownames(pca$x)) +
+  geom_point(size = 3, col=cols) +
+  geom_text(vjust = -0.5, col=cols) +
+  xlim(-270, 500) +
+  xlab("PC1") +
+  ylab("PC2") +
+  theme_bw()
+```
+Another major result of PCA is the so-called "loadingS" or `$rotation` and that tells us how the original variables (foods) contribute to the new PCs (our new axis). 
+
+```{r}
+pca$rotation
+```
+```{r}
+## Lets focus on PC1 as it accounts for > 90% of variance 
+ggplot(pca$rotation) +
+  aes(x = PC1, 
+      y = reorder(rownames(pca$rotation), PC1)) +
+  geom_col(fill = "steelblue") +
+  xlab("PC1 Loading Score") +
+  ylab("") +
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 9))
+```
+> Q9: Generate a similar ‘loadings plot’ for PC2. What two food groups feature prominantely and what does PC2 maninly tell us about?
+
+```{r}
+ggplot(pca$rotation) +
+  aes(x = PC2, 
+      y = reorder(rownames(pca$rotation), PC2)) +
+  geom_col(fill = "steelblue") +
+  xlab("PC2 Loading Score") +
+  ylab("") +
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 9))
+```
+The two main food groups that are prominent are soft drinks and alcoholic drinks. PC2 mainly tells us that the countries that are above 0, which is Scotland on the PC2 axis in the graph above, consume more of these drinks than 
+
+## PCA of RNA-seq data
+
+```{r}
+url2 <- "https://tinyurl.com/expression-CSV"
+rna.data <- read.csv(url2, row.names=1)
+head(rna.data)
+```
+
+> Q10: How many genes and samples are in this data set? How many PCs do you think it will take to have a useful overview of this data set (see below)?
+
+```{r}
+nrow(rna.data)
+ncol(rna.data)
+```
+There are 100 genes and 10 samples. 
+
+```{r}
+## Again we have to take the transpose of our data 
+pca <- prcomp(t(rna.data), scale=TRUE)
+
+# Create data frame for plotting
+df <- as.data.frame(pca$x)
+df$Sample <- rownames(df)
+
+library(ggplot2)
+
+## Plot with ggplot
+ggplot(df) +
+  aes(x = PC1, y = PC2, label = Sample) +
+  geom_point(size = 3) +
+  geom_text(vjust = -0.5, size = 3) +
+  xlab("PC1") +
+  ylab("PC2") +
+  theme_bw()
+```
+```{r}
+summary(pca)
+```
+Based on the summary PCA results, we will only have to run 1 PC to have a useful overview of this dataset because PC1 has 92.6% of the cumulative proportion of variance, meaning that it captures a large amount of the principal features of the original data.

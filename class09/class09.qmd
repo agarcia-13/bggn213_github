@@ -1,0 +1,230 @@
+---
+title: "Class 09: Structural Bioinformatics"
+author: "Alexandra Garcia (A16278166)"
+format: pdf
+toc: TRUE 
+---
+
+## The PDB database
+
+The main repository for biomolecular structure data is the Protein Data Bank (PBD) https://www.rcsb.org
+
+Let's have a quick look at the composition of this database: 
+
+> Q1: What percentage of structures in the PDB are solved by X-Ray and Electron Microscopy.
+
+```{r}
+stats <- read.csv("Data Export Summary.csv", row.names = 1)
+
+stats
+
+stats$X.ray
+```
+
+We have to change the values in the dataframe because they are characters and we need them to be integers to be able to do math with them.
+
+To do this, we can try a import function from the **readr** package.
+
+```{r}
+library(readr)
+
+stats <- read_csv("Data Export Summary.csv")
+stats
+```
+```{r}
+n.total <- sum(stats$Total)
+n.xray <- sum(stats$`X-ray`)
+
+round(n.xray / n.total * 100,2)
+```
+
+Percent XRAY: 81.43%
+
+```{r}
+n.em <- sum(stats$EM)
+
+round(n.em / n.total * 100, 2)
+```
+
+Percent EM: 12.27%
+
+> Q2: What proportion of structures in the PDB are protein?
+
+```{r}
+library(ggplot2)
+
+ggplot(stats)+
+  aes(reorder(`Molecular Type`, -Total), Total) +
+  geom_col() 
+```
+
+> Q3: Type HIV in the PDB website search box on the home page and determine how many HIV-1 protease structures are in the current PDB?
+
+5 structures
+
+## Visualizing structure data
+
+The Mol* viewer is embedded in PDB website. https://molstar.org
+
+I can insert any figure or image file using markdown format. 
+
+![The HIV-Pr dimer with bound inhibitor](1HSG.png)
+
+> Q4: Water molecules normally have 3 atoms. Why do we see just one atom per water molecule in this structure?
+
+We only see one atom per water molecule because it helps display the protein structure better, otherwise we would not even be able to see the structure since it would be completely covered by all the water. 
+
+> Q5: There is a critical “conserved” water molecule in the binding site. Can you identify this water molecule? What residue number does this water molecule have
+
+HOH 308
+
+![](1HSG ASP25.png)
+> Q6: Generate and save a figure clearly showing the two distinct chains of HIV-protease along with the ligand. You might also consider showing the catalytic residues ASP 25 in each chain and the critical water (we recommend “Ball & Stick” for these side-chains). Add this figure to your Quarto document.
+
+![](1HSG ligand.png)
+
+## Bio3D package for structural bioinformatics
+
+We can use the bio3d package to read and analyze biomolecular data in R: 
+
+```{r}
+library(bio3d)
+
+hiv <- read.pdb("1hsg")
+hiv
+```
+> Q7: How many amino acid residues are there in this pdb object? 
+
+2
+
+> Q8: Name one of the two non-protein residues? 
+
+HOH (127), MK1 (1)
+
+> Q9: How many protein chains are in this structure? 
+
+2 (A & B)
+
+```{r}
+head(hiv$atom)
+```
+
+Let's get the sequence
+
+```{r}
+pdbseq(hiv)
+```
+
+Let's trim to chain A and get just it's sequence
+
+```{r}
+chainA <- trim.pdb(hiv, chain= "A")
+chainA.seq <- pdbseq(chainA)
+```
+
+Let's blast
+```{r blast_hiv, cache=TRUE}
+blast <- blast.pdb(chainA.seq)
+```
+
+```{r}
+head(blast$hit.tbl)
+```
+
+Plot a quick overvview of blast results 
+
+```{r}
+hits <- plot(blast)
+```
+```{r}
+hits$pdb.id
+```
+## Prediction of functional motions
+
+We can run on Normal Mode Analysis (NMA) to predict large scale motions/flexibility/dynamics of any biomolecule that we can read into R. 
+
+Let's look at ADK and chain A only!
+
+```{r}
+adk <- read.pdb("1ake")
+
+adk_A <- trim.pdb(adk, chain="A")
+adk_A
+```
+
+```{r}
+m <- nma(adk_A)
+plot(m)
+```
+Let's write out a "trajectory" of predicted motion
+
+```{r}
+mktrj(m, file="adk_nma.pdb")
+```
+
+## Play with 3D viewing in R
+
+We can use the new **bio3dview** package which is not yet on CRAN to render interactive 3d views in R and HTML quarto output reports. 
+
+To install from GitHub we can use the **pak** package.
+
+> Q10. Which of the packages above is found only on BioConductor and not CRAN? 
+
+BiocManager
+
+> Q11. Which of the above packages is not found on BioConductor or CRAN?: 
+
+devtools
+
+> Q12. True or False? Functions from the devtools package can be used to install packages from GitHub and BitBucket? 
+
+True
+
+
+## Comparative analysis of protein structures
+
+Starting with a sequence or structure ID (accession number) let's run a complete analysis pipeline. 
+
+```{r}
+library(bio3d)
+
+id <- "1ake_A"
+
+aa <- get.seq(id)
+aa
+```
+```{r, cache=TRUE}
+blast <- blast.pdb(aa)
+hits <- plot(blast)
+```
+```{r}
+hits$pdb.id
+```
+
+Download all these "hits" that are similar to our starting ID sequence
+
+```{r}
+# Download releated PDB files
+files <- get.pdb(hits$pdb.id, path="pdbs", split=TRUE, gzip=TRUE)
+```
+```{r}
+# Align releated PDBs
+pdbs <- pdbaln(files, fit = TRUE, exefile="msa")
+```
+```{r}
+pc.xray <- pca(pdbs)
+plot(pc.xray)
+```
+```{r}
+plot(pc.xray, 1:2)
+```
+```{r}
+mktrj(pc.xray, file="pca_results.pdb")
+```
+
+```{r}
+library(bio3dview)
+
+view.pca(pc.xray)
+```
+
