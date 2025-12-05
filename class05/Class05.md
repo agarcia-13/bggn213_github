@@ -23,7 +23,7 @@ Let’s plot this with “base” R:
 plot(cars)
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-2-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-2-1.png)
 
 ``` r
 head(mtcars)
@@ -43,13 +43,13 @@ Let’s plot `mpg` vs `disp`
 plot(mtcars$mpg, mtcars$disp, pch=16)
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-4-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-4-1.png)
 
 ``` r
 hist(mtcars$mpg)
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-5-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-5-1.png)
 
 ## GGPLOT
 
@@ -74,7 +74,7 @@ ggplot(cars) +
   geom_point()
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-6-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-6-1.png)
 
 ``` r
 ggplot(cars) + 
@@ -84,7 +84,7 @@ ggplot(cars) +
 
     `stat_bin()` using `bins = 30`. Pick better value `binwidth`.
 
-![](Class05_files/figure-commonmark/unnamed-chunk-7-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-7-1.png)
 
 Every ggplot needs at least 3 things.
 
@@ -106,7 +106,7 @@ ggplot(cars) +
   geom_line()
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-8-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-8-1.png)
 
 ``` r
 library(ggplot2)
@@ -118,7 +118,7 @@ ggplot(cars) +
 
     `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
 
-![](Class05_files/figure-commonmark/unnamed-chunk-9-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-9-1.png)
 
 ``` r
 library(ggplot2)
@@ -130,7 +130,7 @@ ggplot(cars) +
 
     `geom_smooth()` using formula = 'y ~ x'
 
-![](Class05_files/figure-commonmark/unnamed-chunk-10-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-10-1.png)
 
 ### Adding more layers
 
@@ -153,7 +153,7 @@ ggplot(cars) +
 
     `geom_smooth()` using formula = 'y ~ x'
 
-![](Class05_files/figure-commonmark/unnamed-chunk-11-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-11-1.png)
 
 ## Plot some expression data
 
@@ -201,7 +201,7 @@ ggplot(genes) +
     geom_point()
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-15-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-15-1.png)
 
 Color by State
 
@@ -211,7 +211,7 @@ ggplot(genes) +
     geom_point()
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-16-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-16-1.png)
 
 What if you want to change the color palette?
 
@@ -235,7 +235,7 @@ ggplot(genes) +
     geom_text()
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-18-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-18-1.png)
 
 This makes the plot look silly because it adds a label onto every
 coordinate point, which makes it hard to read.
@@ -260,7 +260,7 @@ ggplot(genes) +
     Warning: ggrepel: 5150 unlabeled data points (too many overlaps). Consider
     increasing max.overlaps
 
-![](Class05_files/figure-commonmark/unnamed-chunk-19-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-19-1.png)
 
 ## Going further
 
@@ -304,7 +304,7 @@ ggplot(gapminder) +
   geom_point()
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-23-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-23-1.png)
 
 Color it by continent
 
@@ -314,7 +314,7 @@ ggplot(gapminder) +
   geom_point()
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-24-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-24-1.png)
 
 Divide it into different panels per continent
 
@@ -325,7 +325,7 @@ ggplot(gapminder) +
   facet_wrap(~continent)
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-25-1.png)
+![](class05_files/figure-commonmark/unnamed-chunk-25-1.png)
 
 ## Make a more interesting plot
 
@@ -347,4 +347,4 @@ ggplot(gapminder) +
   shadow_wake(wake_length = 0.1, alpha = FALSE)
 ```
 
-![](Class05_files/figure-commonmark/unnamed-chunk-26-1.gif)
+![](class05_files/figure-commonmark/unnamed-chunk-26-1.gif)
